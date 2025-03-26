@@ -34,6 +34,62 @@ if (isset($_SESSION['user_id'])) {
           crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
+        /* Existing styles remain unchanged until the end */
+
+        /* Chatbot Styling */
+        .chatbot-container {
+            position: fixed;
+            bottom: 60px; /* Adjusted to accommodate toggle button */
+            right: 20px;
+            z-index: 1070; /* Higher than most elements */
+        }
+
+        #toggleChatbot {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1075; /* Above chatbot */
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            background: #00aaff;
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        #toggleChatbot:hover {
+            background: #0088cc;
+            transform: scale(1.05);
+        }
+
+        zapier-interfaces-chatbot-embed {
+            display: none; /* Hidden by default */
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        /* Attempt to hide "Made with Zapier" branding */
+        zapier-interfaces-chatbot-embed::part(footer),
+        zapier-interfaces-chatbot-embed [slot="footer"] {
+            display: none !important;
+        }
+
+        /* Responsive Design for Chatbot */
+        @media (max-width: 768px) {
+            zapier-interfaces-chatbot-embed {
+                width: 300px;
+                height: 400px;
+            }
+        }
+
+        /* Existing styles continue here */
         body {
             font-family: 'Poppins', sans-serif;
             background: #f0f4f8;
@@ -67,7 +123,7 @@ if (isset($_SESSION['user_id'])) {
 
         .navbar-nav {
             display: flex;
-            align-items: center; /* Align all navbar items vertically */
+            align-items: center;
         }
 
         .nav-link {
@@ -101,9 +157,9 @@ if (isset($_SESSION['user_id'])) {
             color: #1a2a44;
             font-weight: 500;
             padding: 0.5rem 1rem;
-            margin: 0; /* Remove any default margins */
-            display: inline-flex; /* Ensure it aligns with other navbar items */
-            align-items: center; /* Vertically center the text */
+            margin: 0;
+            display: inline-flex;
+            align-items: center;
         }
 
         /* Hero Section with Parallax */
@@ -152,9 +208,9 @@ if (isset($_SESSION['user_id'])) {
             color: #1a2a44;
             border: none;
             border-radius: 25px;
-            padding: 1rem 2.5rem; /* Increased padding for larger size */
-            font-size: 1.5rem; /* Increased font size */
-            font-weight: 600; /* Make text bolder */
+            padding: 1rem 2.5rem;
+            font-size: 1.5rem;
+            font-weight: 600;
             transition: all 0.3s ease;
             display: inline-block !important;
             opacity: 1 !important;
@@ -601,8 +657,8 @@ if (isset($_SESSION['user_id'])) {
             }
 
             .btn-hero {
-                padding: 0.75rem 2rem; /* Slightly smaller padding for mobile */
-                font-size: 1.2rem; /* Slightly smaller font size for mobile */
+                padding: 0.75rem 2rem;
+                font-size: 1.2rem;
             }
 
             .about-section, .what-to-do-section, .features-section, .companies-section, 
@@ -1059,6 +1115,18 @@ if (isset($_SESSION['user_id'])) {
         </div>
     </footer>
 
+    <!-- Chatbot Container with Toggle Button -->
+    <div class="chatbot-container" id="chatbotContainer">
+        <script async type="module" src="https://interfaces.zapier.com/assets/web-components/zapier-interfaces/zapier-interfaces.esm.js"></script>
+        <zapier-interfaces-chatbot-embed 
+            is-popup="false" 
+            chatbot-id="cm8kj49cb000l12yyt5s0gm8k" 
+            height="600px" 
+            width="400px">
+        </zapier-interfaces-chatbot-embed>
+    </div>
+    <button id="toggleChatbot" aria-label="Toggle Chatbot">💬</button>
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" 
             integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" 
@@ -1071,6 +1139,17 @@ if (isset($_SESSION['user_id'])) {
             crossorigin="anonymous"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Chatbot Toggle Functionality
+            const toggleChatbotBtn = document.getElementById('toggleChatbot');
+            const chatbotEmbed = document.querySelector('zapier-interfaces-chatbot-embed');
+            
+            toggleChatbotBtn.addEventListener('click', () => {
+                const isVisible = chatbotEmbed.style.display === 'block';
+                chatbotEmbed.style.display = isVisible ? 'none' : 'block';
+                toggleChatbotBtn.textContent = isVisible ? '💬' : '✖'; // Change icon based on state
+                toggleChatbotBtn.setAttribute('aria-label', isVisible ? 'Show Chatbot' : 'Hide Chatbot');
+            });
+
             // GSAP Animations
 
             // Navbar Animation
@@ -1424,6 +1503,15 @@ if (isset($_SESSION['user_id'])) {
                 opacity: 0,
                 y: 50,
                 ease: 'power2.out'
+            });
+
+            // Chatbot Animation
+            gsap.from('#toggleChatbot', {
+                duration: 1,
+                opacity: 1,
+                scale: 1.2,
+                ease: 'back.out(1.7)',
+                delay: 1
             });
 
             // Hover Animations for Cards
