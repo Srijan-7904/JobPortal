@@ -140,7 +140,6 @@ $registered_hackathons = [];
 $past_hackathons = [];
 
 if ($user_role === 'employer') {
-    // For employers: Fetch hackathons they created
     $stmt = $conn->prepare("SELECT * FROM hackathons WHERE employer_id = ? AND is_active = 1 ORDER BY date ASC LIMIT 3");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
@@ -153,13 +152,11 @@ if ($user_role === 'employer') {
     $past_hackathons = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
 } else {
-    // For job seekers: Fetch upcoming hackathons
     $stmt = $conn->prepare("SELECT h.*, u.name AS organizer_name FROM hackathons h JOIN users u ON h.employer_id = u.id WHERE h.is_active = 1 ORDER BY h.date ASC LIMIT 3");
     $stmt->execute();
     $upcoming_hackathons = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
 
-    // Fetch hackathons the job seeker has registered for
     $stmt = $conn->prepare("
         SELECT h.*, u.name AS organizer_name 
         FROM hackathons h 
@@ -508,7 +505,7 @@ if ($user_role === 'employer') {
             font-size: 0.9rem;
         }
 
-        /* Modal Styling (for job details only, since hackathon modals are removed) */
+        /* Modal Styling */
         .modal {
             z-index: 1055;
         }
@@ -634,6 +631,42 @@ if ($user_role === 'employer') {
             transform: translateY(-5px);
         }
 
+        /* Chatbot Styling */
+        .chatbot-container {
+            position: fixed;
+            bottom: 60px; /* Adjusted to accommodate toggle button */
+            right: 20px;
+            z-index: 1070; /* Higher than toast (1060) and modal (1055) */
+        }
+
+        #toggleChatbot {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1075; /* Above chatbot */
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        zapier-interfaces-chatbot-embed {
+            display: none; /* Hidden by default */
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        /* Attempt to hide "Made with Zapier" branding */
+        zapier-interfaces-chatbot-embed::part(footer),
+        zapier-interfaces-chatbot-embed [slot="footer"] {
+            display: none !important;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .job-list {
@@ -658,6 +691,11 @@ if ($user_role === 'employer') {
 
             .chat-section, .hackathon-section {
                 padding: 1rem;
+            }
+
+            zapier-interfaces-chatbot-embed {
+                width: 300px;
+                height: 400px;
             }
         }
     </style>
@@ -934,16 +972,16 @@ if ($user_role === 'employer') {
                                  tabindex="0" aria-label="Job: <?php echo htmlspecialchars($job['title']); ?>">
                             <div class="card-body position-relative">
                                 <!-- Bookmark Icon for Job Seekers -->
-                               <?php if ($user_role === 'jobseeker'): ?>
-    <button class="bookmark-btn btn btn-link" 
-            data-job-id="<?php echo $job['id']; ?>" 
-            aria-label="<?php echo isset($bookmarked_jobs[$job['id']]) ? 'Remove job from bookmarks' : 'Bookmark job'; ?>">
-        <img src="<?php echo isset($bookmarked_jobs[$job['id']]) ? '../assets/icons/bookmark-filled.png' : '../assets/icons/bookmark-outline.png'; ?>" 
-             alt="<?php echo isset($bookmarked_jobs[$job['id']]) ? 'Bookmarked' : 'Not bookmarked'; ?>" 
-             class="bookmark-icon"
-             onerror="this.onerror=null; this.src='../assets/icons/bookmark-outline.png';">
-    </button>
-<?php endif; ?>
+                                <?php if ($user_role === 'jobseeker'): ?>
+                                    <button class="bookmark-btn btn btn-link" 
+                                            data-job-id="<?php echo $job['id']; ?>" 
+                                            aria-label="<?php echo isset($bookmarked_jobs[$job['id']]) ? 'Remove job from bookmarks' : 'Bookmark job'; ?>">
+                                        <img src="<?php echo isset($bookmarked_jobs[$job['id']]) ? '../assets/icons/bookmark-filled.png' : '../assets/icons/bookmark-outline.png'; ?>" 
+                                             alt="<?php echo isset($bookmarked_jobs[$job['id']]) ? 'Bookmarked' : 'Not bookmarked'; ?>" 
+                                             class="bookmark-icon"
+                                             onerror="this.onerror=null; this.src='../assets/icons/bookmark-outline.png';">
+                                    </button>
+                                <?php endif; ?>
                                 
                                 <h4 class="card-title"><?php echo htmlspecialchars($job['title']); ?></h4>
                                 <p class="card-text"><?php echo nl2br(htmlspecialchars($job['description'])); ?></p>
@@ -1129,6 +1167,18 @@ if ($user_role === 'employer') {
         </div>
     </footer>
 
+    <!-- Chatbot Container with Toggle Button -->
+    <div class="chatbot-container" id="chatbotContainer">
+        <script async type="module" src="https://interfaces.zapier.com/assets/web-components/zapier-interfaces/zapier-interfaces.esm.js"></script>
+        <zapier-interfaces-chatbot-embed 
+            is-popup="false" 
+            chatbot-id="cm8kj49cb000l12yyt5s0gm8k" 
+            height="600px" 
+            width="400px">
+        </zapier-interfaces-chatbot-embed>
+    </div>
+    <button id="toggleChatbot" class="btn btn-primary" aria-label="Toggle Chatbot">💬</button>
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" 
             integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" 
@@ -1141,6 +1191,19 @@ if ($user_role === 'employer') {
             crossorigin="anonymous"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Existing JavaScript remains unchanged until here...
+
+            // Chatbot Toggle Functionality
+            const toggleChatbotBtn = document.getElementById('toggleChatbot');
+            const chatbotEmbed = document.querySelector('zapier-interfaces-chatbot-embed');
+            
+            toggleChatbotBtn.addEventListener('click', () => {
+                const isVisible = chatbotEmbed.style.display === 'block';
+                chatbotEmbed.style.display = isVisible ? 'none' : 'block';
+                toggleChatbotBtn.textContent = isVisible ? '💬' : '✖'; // Change icon based on state
+                toggleChatbotBtn.setAttribute('aria-label', isVisible ? 'Show Chatbot' : 'Hide Chatbot');
+            });
+
             // Log the number of job cards for debugging
             const jobCards = document.querySelectorAll('.card');
             console.log('Number of job cards:', jobCards.length);
