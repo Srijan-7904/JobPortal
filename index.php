@@ -45,6 +45,52 @@ if (isset($_SESSION['user_id'])) {
 
         main { flex: 1 0 auto; }
 
+
+
+    #chatbot-button {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 60px;
+            height: 60px;
+            background-color: #007bff;
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            line-height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+        }
+        #chatbot-button:hover {
+            background-color: #0056b3;
+        }
+        #chatbot-container {
+            position: fixed;
+            bottom: 80px;
+            right: 10px;
+            width: 450px;
+            height: 700px;
+            z-index: 9998;
+        }
+        #overlay-box {
+            position: fixed;
+            bottom: 70px;
+            right: 10px;
+            width: 450px;
+            height: 45px;
+            background-color: rgba(255, 255, 255, 0.9);
+            color: gray;
+            text-align: center;
+            line-height: 50px;
+            font-size: 16px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            display: none;
+            z-index: 9999;
+        }
+
         /* Navbar */
         .navbar {
             background: rgba(255, 255, 255, 0.95);
@@ -1003,6 +1049,16 @@ if (isset($_SESSION['user_id'])) {
             <a href="<?php echo isset($_SESSION['user_id']) ? 'views/dashboard.php' : 'auth/register.php'; ?>" 
                class="btn btn-cta">Get Started Now</a>
         </div>
+
+
+<div id="chatbot-button" onclick="toggleChatbot()">💬</div>
+    
+    <div id="chatbot-container" style="display: none;">
+        <script async type='module' src='https://interfaces.zapier.com/assets/web-components/zapier-interfaces/zapier-interfaces.esm.js'></script>
+        <zapier-interfaces-chatbot-embed is-popup='false' chatbot-id='cm8kj49cb000l12yyt5s0gm8k' height='700px' width='450px'></zapier-interfaces-chatbot-embed>
+    </div>
+    
+    <div id="overlay-box" style="display: none;">Chatbot is active</div>
     </section>
 
     <!-- Footer -->
@@ -1444,6 +1500,14 @@ if (isset($_SESSION['user_id'])) {
                 });
             });
         });
+
+        function toggleChatbot() {
+            var chatbot = document.getElementById("chatbot-container");
+            var overlay = document.getElementById("overlay-box");
+            var isHidden = chatbot.style.display === "none";
+            chatbot.style.display = isHidden ? "block" : "none";
+            overlay.style.display = isHidden ? "block" : "none";
+        }
     </script>
 </body>
 </html>
