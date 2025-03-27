@@ -25,10 +25,10 @@ if (isset($_SESSION['user_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="description" content="Learn more about Job Portal - Our mission, vision, and team dedicated to connecting talent with opportunities.">
-    <meta name="keywords" content="job portal, about us, mission, vision, team">
-    <meta name="author" content="Job Portal Team">
-    <title>About Job Portal - Connecting Talent with Opportunities</title>
+    <meta name="description" content="Learn more about RookieRise - Our mission, vision, and team dedicated to connecting talent with opportunities.">
+    <meta name="keywords" content="RookieRise, about us, mission, vision, team">
+    <meta name="author" content="RookieRise Team">
+    <title>About RookieRise - Connecting Talent with Opportunities</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" 
           integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" 
           crossorigin="anonymous">
@@ -340,7 +340,7 @@ if (isset($_SESSION['user_id'])) {
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg" aria-label="Main navigation">
         <div class="container-fluid">
-            <a class="navbar-brand" href="index.php" aria-label="Job Portal Home">Job Portal</a>
+            <a class="navbar-brand" href="index.php" aria-label="RookieRise Home">RookieRise</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
                 data-bs-target="#navbarNav" aria-controls="navbarNav" 
                 aria-expanded="false" aria-label="Toggle navigation">
@@ -383,7 +383,7 @@ if (isset($_SESSION['user_id'])) {
     <!-- Hero Section -->
     <section class="hero-section">
         <div class="hero-content">
-            <h1>About Job Portal</h1>
+            <h1>About RookieRise</h1>
         </div>
     </section>
 
@@ -394,7 +394,7 @@ if (isset($_SESSION['user_id'])) {
                 <div class="col-md-6">
                     <h2>Our Mission</h2>
                     <p>
-                        At Job Portal, our mission is to bridge the gap between talent and opportunity. We strive to create a platform where job seekers can find their dream careers and employers can discover the best talent to grow their organizations.
+                        At RookieRise, our mission is to bridge the gap between talent and opportunity. We strive to create a platform where job seekers can find their dream careers and employers can discover the best talent to grow their organizations.
                     </p>
                     <p>
                         We are committed to providing a seamless, user-friendly experience with tools that empower both job seekers and employers to achieve their goals.
@@ -416,7 +416,7 @@ if (isset($_SESSION['user_id'])) {
                 <div class="col-md-6 order-md-2">
                     <h2>Our Vision</h2>
                     <p>
-                        We envision a world where every individual has access to meaningful work that aligns with their skills and passions. Job Portal aims to be the leading global platform for career growth and talent acquisition.
+                        We envision a world where every individual has access to meaningful work that aligns with their skills and passions. RookieRise aims to be the leading global platform for career growth and talent acquisition.
                     </p>
                     <p>
                         By leveraging technology and innovation, we aspire to transform the job market, making it more inclusive, efficient, and rewarding for everyone involved.
@@ -437,30 +437,25 @@ if (isset($_SESSION['user_id'])) {
             <h2 class="text-center">Meet Our Team</h2>
             <div class="row">
                 <div class="col-md-4">
+
                     <div class="team-card">
-                        <img src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
-                             alt="Emily Johnson" 
-                             onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\'fallback-image\'>EJ</div>';">
-                        <h5>Emily Johnson</h5>
-                        <p>Founder & CEO</p>
+                        <a href="https://ibb.co/n81krYRH"><img src="https://i.ibb.co/HpPg7bXW/473396657-9067858626612551-8103250684495701786-n.jpg" alt="473396657-9067858626612551-8103250684495701786-n" border="0"></a>
+                        <h5>Kriti Rai</h5>
+                        <p>Software Developer</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="team-card">
-                        <img src="https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
-                             alt="Michael Brown" 
-                             onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\'fallback-image\'>MB</div>';">
-                        <h5>Michael Brown</h5>
-                        <p>Chief Technology Officer</p>
+                    <a href="https://ibb.co/nND7YQWN"><img src="https://i.ibb.co/rRZxz5WR/473395305-401278983030328-2843355241182261745-n.jpg" alt="473395305-401278983030328-2843355241182261745-n" border="0"></a>
+                        <h5>Abhay Tomar</h5>
+                        <p>Hardware and Robotics Expert</p>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="team-card">
-                        <img src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
-                             alt="Sarah Davis" 
-                             onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\'fallback-image\'>SD</div>';">
-                        <h5>Sarah Davis</h5>
-                        <p>Head of Marketing</p>
+                    <a href="https://ibb.co/HTYYXLbM"><img src="https://i.ibb.co/QvnnX7Tq/dc952d1b-a9ff-40ba-a992-1d65ed2043b9.jpg" alt="dc952d1b-a9ff-40ba-a992-1d65ed2043b9" border="0"></a>
+                        <h5>Srijan Jaiswal</h5>
+                        <p>Web Developer</p>
                     </div>
                 </div>
             </div>
@@ -470,7 +465,7 @@ if (isset($_SESSION['user_id'])) {
     <!-- CTA Section -->
     <section class="cta-section">
         <div class="container">
-            <h2>Join Job Portal Today!</h2>
+            <h2>Join RookieRise Today!</h2>
             <p>Ready to take the next step in your career or find the perfect candidate? Join our community now!</p>
             <a href="<?php echo isset($_SESSION['user_id']) ? 'views/dashboard.php' : 'auth/register.php'; ?>" 
                class="btn btn-cta">Get Started</a>
@@ -482,7 +477,7 @@ if (isset($_SESSION['user_id'])) {
         <div class="container">
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <h5>Job Portal</h5>
+                    <h5>RookieRise</h5>
                     <p>Connecting talent with opportunities since 2025.</p>
                 </div>
                 <div class="col-md-4 mb-3">
@@ -526,7 +521,7 @@ if (isset($_SESSION['user_id'])) {
             </div>
             <hr style="border-color: rgba(255,255,255,0.2);">
             <div class="text-center">
-                <p class="mb-0">© <?php echo date('Y'); ?> Job Portal. All rights reserved.</p>
+                <p class="mb-0">© <?php echo date('Y'); ?> RookieRise. All rights reserved.</p>
             </div>
         </div>
     </footer>

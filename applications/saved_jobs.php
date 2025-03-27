@@ -62,12 +62,12 @@ $nonce = base64_encode(random_bytes(16));
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="description" content="View your saved jobs on the Job Portal">
+    <meta name="description" content="View your saved jobs on the RookieRise">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; 
         script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://code.jquery.com 'nonce-<?php echo $nonce; ?>'; 
         style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'nonce-<?php echo $nonce; ?>'; 
         img-src 'self' data: https://cdn-icons-png.flaticon.com;">
-    <title>Saved Jobs | Job Portal</title>
+    <title>Saved Jobs | RookieRise</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" 
             integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" 
             crossorigin="anonymous"></script>
@@ -316,7 +316,7 @@ $nonce = base64_encode(random_bytes(16));
 <body>
     <nav class="navbar navbar-expand-lg" aria-label="Main navigation">
         <div class="container-fluid">
-            <a class="navbar-brand" href="../index.php" aria-label="Job Portal Home">Job Portal</a>
+            <a class="navbar-brand" href="../index.php" aria-label="RookieRise Home">RookieRise</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
                 data-bs-target="#navbarNav" aria-controls="navbarNav" 
                 aria-expanded="false" aria-label="Toggle navigation">
@@ -377,9 +377,6 @@ $nonce = base64_encode(random_bytes(16));
                                 <div class="card-text">
                                     <p><strong>Description:</strong> <?php echo nl2br(htmlspecialchars($job['description'])); ?></p>
                                     <p><strong>Salary:</strong> $<?php echo number_format($job['salary'], 2); ?></p>
-                                    <p><strong>Location:</strong> <?php echo htmlspecialchars($job['location']); ?></p>
-                                    <p><strong>Type:</strong> <?php echo htmlspecialchars($job['type']); ?></p>
-                                    <p><strong>Experience:</strong> <?php echo htmlspecialchars($job['experience']); ?></p>
                                     <p><small class="text-muted">Posted: <?php echo date('M d, Y', strtotime($job['created_at'])); ?></small></p>
                                     <p><small class="text-muted">Saved: <?php echo date('M d, Y', strtotime($job['bookmarked_at'])); ?></small></p>
                                 </div>
@@ -449,7 +446,7 @@ $nonce = base64_encode(random_bytes(16));
         <div class="container">
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <h5>Job Portal</h5>
+                    <h5>RookieRise</h5>
                     <p>Connecting talent with opportunities since 2025.</p>
                 </div>
                 <div class="col-md-4 mb-3">
@@ -489,7 +486,7 @@ $nonce = base64_encode(random_bytes(16));
             </div>
             <hr style="border-color: rgba(255,255,255,0.2);">
             <div class="text-center">
-                <p class="mb-0">© <?php echo date('Y'); ?> Job Portal. All rights reserved.</p>
+                <p class="mb-0">© <?php echo date('Y'); ?> RookieRise. All rights reserved.</p>
             </div>
         </div>
     </footer>

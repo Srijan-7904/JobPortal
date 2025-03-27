@@ -25,10 +25,10 @@ if (isset($_SESSION['user_id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="description" content="Job Portal - Connect with top employers and job seekers. Find your dream job or hire the best talent today!">
-    <meta name="keywords" content="job portal, find jobs, hire talent, career opportunities">
-    <meta name="author" content="Job Portal Team">
-    <title>Job Portal - Find Your Dream Job</title>
+    <meta name="description" content="RookieRise - Connect with top employers and job seekers. Find your dream job or hire the best talent today!">
+    <meta name="keywords" content="RookieRise, find jobs, hire talent, career opportunities">
+    <meta name="author" content="RookieRise Team">
+    <title>RookieRise - Find Your Dream Job</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" 
           integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" 
           crossorigin="anonymous">
@@ -686,7 +686,7 @@ if (isset($_SESSION['user_id'])) {
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg" aria-label="Main navigation">
         <div class="container-fluid">
-            <a class="navbar-brand" href="index.php" aria-label="Job Portal Home">Job Portal</a>
+            <a class="navbar-brand" href="index.php" aria-label="RookieRise Home">RookieRise</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
                 data-bs-target="#navbarNav" aria-controls="navbarNav" 
                 aria-expanded="false" aria-label="Toggle navigation">
@@ -730,7 +730,7 @@ if (isset($_SESSION['user_id'])) {
     <section class="hero-section">
         <div class="hero-content">
             <h1>Discover Your Dream Career</h1>
-            <p>Join Job Portal to connect with top employers and find opportunities that match your skills.</p>
+            <p>Join RookieRise to connect with top employers and find opportunities that match your skills.</p>
             <a href="<?php echo isset($_SESSION['user_id']) ? 'views/dashboard.php' : 'auth/register.php'; ?>" 
                class="btn btn-hero">Get Started</a>
         </div>
@@ -741,9 +741,9 @@ if (isset($_SESSION['user_id'])) {
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <h2>About Job Portal</h2>
+                    <h2>About RookieRise</h2>
                     <p>
-                        Job Portal is a cutting-edge platform designed to simplify the job search and hiring process. 
+                        RookieRise is a cutting-edge platform designed to simplify the job search and hiring process. 
                         Whether you're a job seeker looking for your next big opportunity or an employer searching for 
                         top talent, we provide the tools you need to succeed.
                     </p>
@@ -962,7 +962,7 @@ if (isset($_SESSION['user_id'])) {
                         <img src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
                              alt="Emily Johnson" 
                              onerror="this.onerror=null; this.parentNode.innerHTML='<div class=\'fallback-image\'>EJ</div>';">
-                        <p>"I found my dream job within a week of joining Job Portal. The platform is so easy to use!"</p>
+                        <p>"I found my dream job within a week of joining RookieRise. The platform is so easy to use!"</p>
                         <h6>Emily Johnson, Software Engineer</h6>
                     </div>
                 </div>
@@ -1025,13 +1025,13 @@ if (isset($_SESSION['user_id'])) {
                     <h2 class="accordion-header" id="faqHeading3">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
                                 data-bs-target="#faqCollapse3" aria-expanded="false" aria-controls="faqCollapse3">
-                            Is Job Portal free to use?
+                            Is RookieRise free to use?
                         </button>
                     </h2>
                     <div id="faqCollapse3" class="accordion-collapse collapse" 
                          aria-labelledby="faqHeading3" data-bs-parent="#faqAccordion">
                         <div class="accordion-body">
-                            Yes, Job Portal is free for job seekers. Employers can post jobs for free, but premium features like advanced analytics may require a subscription.
+                            Yes, RookieRise is free for job seekers. Employers can post jobs for free, but premium features like advanced analytics may require a subscription.
                         </div>
                     </div>
                 </div>
@@ -1054,7 +1054,7 @@ if (isset($_SESSION['user_id'])) {
     <!-- CTA Section -->
     <section class="cta-section">
         <div class="container">
-            <h2>Join Job Portal Today!</h2>
+            <h2>Join RookieRise Today!</h2>
             <p>Whether you're a job seeker or an employer, we have the tools to help you succeed.</p>
             <a href="<?php echo isset($_SESSION['user_id']) ? 'views/dashboard.php' : 'auth/register.php'; ?>" 
                class="btn btn-cta">Get Started Now</a>
@@ -1066,7 +1066,7 @@ if (isset($_SESSION['user_id'])) {
         <div class="container">
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <h5>Job Portal</h5>
+                    <h5>RookieRise</h5>
                     <p>Connecting talent with opportunities since 2025.</p>
                 </div>
                 <div class="col-md-4 mb-3">
@@ -1110,7 +1110,7 @@ if (isset($_SESSION['user_id'])) {
             </div>
             <hr style="border-color: rgba(255,255,255,0.2);">
             <div class="text-center">
-                <p class="mb-0">© <?php echo date('Y'); ?> Job Portal. All rights reserved.</p>
+                <p class="mb-0">© <?php echo date('Y'); ?> RookieRise. All rights reserved.</p>
             </div>
         </div>
     </footer>

@@ -22,21 +22,37 @@ $user_id = $_SESSION['user_id'];
 $user_name = $_SESSION['user_name'] ?? 'Guest';
 $user_role = $_SESSION['user_role'] ?? null;
 
-// Fetch user role if not set
+// Validate and normalize the user's email
+$user_email_raw = $_SESSION['user_email'] ?? null;
+$user_email = null;
+if ($user_email_raw && filter_var($user_email_raw, FILTER_VALIDATE_EMAIL)) {
+    $user_email = htmlspecialchars($user_email_raw, ENT_QUOTES, 'UTF-8');
+}
+
+// Fetch user role and last visit if not set
 if (!$user_role) {
-    $stmt = $conn->prepare("SELECT role FROM users WHERE id = ?");
+    $stmt = $conn->prepare("SELECT role, last_dashboard_visit FROM users WHERE id = ?");
     if (!$stmt) {
         $user_role = 'guest';
     } else {
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
-        $stmt->bind_result($db_role);
+        $stmt->bind_result($db_role, $last_visit);
         $stmt->fetch();
         $stmt->close();
         $user_role = $db_role ?? 'guest';
         $_SESSION['user_role'] = $user_role;
+        $_SESSION['last_dashboard_visit'] = $last_visit;
     }
 }
+
+// Update last_dashboard_visit for this visit
+$current_time = date('Y-m-d H:i:s');
+$stmt = $conn->prepare("UPDATE users SET last_dashboard_visit = ? WHERE id = ?");
+$stmt->bind_param("si", $current_time, $user_id);
+$stmt->execute();
+$stmt->close();
+$_SESSION['last_dashboard_visit'] = $current_time;
 
 // Pagination setup for jobs
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
@@ -68,6 +84,20 @@ $stmt->execute();
 $jobs = $stmt->get_result();
 $stmt->close();
 
+// Fetch new jobs for job seekers (posted since last visit)
+$new_jobs = [];
+if ($user_role === 'jobseeker' && isset($_SESSION['last_dashboard_visit'])) {
+    $last_visit = $_SESSION['last_dashboard_visit'];
+    $stmt = $conn->prepare("SELECT * FROM jobs WHERE created_at > ? ORDER BY created_at DESC");
+    $stmt->bind_param("s", $last_visit);
+    $stmt->execute();
+    $new_jobs_result = $stmt->get_result();
+    while ($new_job = $new_jobs_result->fetch_assoc()) {
+        $new_jobs[] = $new_job;
+    }
+    $stmt->close();
+}
+
 // Fetch applicants count and details for each job (for employers)
 $applicants_counts = [];
 $applicants_data = [];
@@ -84,7 +114,7 @@ while ($job = $jobs->fetch_assoc()) {
     $applicants = [];
     if ($user_role === 'employer') {
         $applicants_query = $conn->prepare("
-            SELECT u.id, u.name 
+            SELECT u.id, u.name, u.email 
             FROM applications a 
             JOIN users u ON a.user_id = u.id 
             WHERE a.job_id = ? AND u.role = 'jobseeker'
@@ -105,7 +135,7 @@ $jobs->data_seek(0);
 $job_seeker_messages = [];
 if ($user_role === 'employer') {
     $stmt = $conn->prepare("
-        SELECT DISTINCT u.id, u.name, j.title AS job_title
+        SELECT DISTINCT u.id, u.name, u.email, j.title AS job_title
         FROM applications a
         JOIN users u ON a.user_id = u.id
         JOIN jobs j ON a.job_id = j.id
@@ -183,10 +213,10 @@ if ($user_role === 'employer') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="description" content="Job Portal Dashboard - Manage your job listings, applications, and hackathons">
-    <meta name="keywords" content="job portal, dashboard, jobs, applications, hackathons">
-    <meta name="author" content="Job Portal Team">
-    <title>Dashboard | Job Portal</title>
+    <meta name="description" content="RookieRise Dashboard - Manage your job listings, applications, and hackathons">
+    <meta name="keywords" content="RookieRise, dashboard, jobs, applications, hackathons">
+    <meta name="author" content="RookieRise Team">
+    <title>Dashboard | RookieRise</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" 
           integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" 
           crossorigin="anonymous">
@@ -311,6 +341,41 @@ if ($user_role === 'employer') {
             transform: scale(1.05);
         }
 
+        /* Notification Section */
+        .notification-section {
+            margin: 2rem 0;
+            padding: 2rem;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .notification-section h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1a2a44;
+            margin-bottom: 1.5rem;
+        }
+
+        .notification-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .notification-item:hover {
+            background: #e9ecef;
+        }
+
+        .notification-item .btn {
+            margin-left: 1rem;
+        }
+
         /* Search Bar */
         .search-bar {
             max-width: 500px;
@@ -332,22 +397,24 @@ if ($user_role === 'employer') {
 
         /* Job Listings */
         .job-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
             gap: 2rem;
             padding: 2rem 0;
-            opacity: 1;
+            opacity: 1; /* Ensure initial visibility */
         }
 
         .card {
-            background: #fff;
+            border: none;
             border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            background: #fff;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
-            opacity: 1;
-            display: block;
+            opacity: 1; /* Ensure initial visibility */
+            display: block; /* Ensure display is not overridden */
         }
 
         .card:hover {
@@ -667,6 +734,55 @@ if ($user_role === 'employer') {
             display: none !important;
         }
 
+        /* Chat Sidebar Styles */
+        .chat-sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px; /* Hidden by default */
+            width: 400px;
+            height: 100%;
+            background: white;
+            box-shadow: -5px 0 20px rgba(0,0,0,0.2);
+            z-index: 1050;
+            transition: right 0.3s ease-in-out;
+        }
+        .chat-sidebar.open {
+            right: 0;
+        }
+        .chat-sidebar-header {
+            background: #1a2a44;
+            color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-sidebar-header h5 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+        .chat-sidebar-header .btn-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.8;
+        }
+        .chat-sidebar-header .btn-close:hover {
+            opacity: 1;
+        }
+        .chat-sidebar-body {
+            padding: 0;
+            height: calc(100% - 60px);
+        }
+        .chat-sidebar-body #chat-container {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .job-list {
@@ -689,13 +805,21 @@ if ($user_role === 'employer') {
                 font-size: 1.5rem;
             }
 
-            .chat-section, .hackathon-section {
+            .chat-section, .hackathon-section, .notification-section {
                 padding: 1rem;
             }
 
             zapier-interfaces-chatbot-embed {
                 width: 300px;
                 height: 400px;
+            }
+
+            .chat-sidebar {
+                width: 300px;
+                right: -300px;
+            }
+            .chat-sidebar.open {
+                right: 0;
             }
         }
     </style>
@@ -706,12 +830,30 @@ if ($user_role === 'employer') {
         <div id="bookmarkToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-body"></div>
         </div>
+        <div id="actionToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-body"></div>
+        </div>
+    </div>
+
+    <!-- Chat Sidebar -->
+    <div class="chat-sidebar" id="chatSidebar">
+        <div class="chat-sidebar-header">
+            <h5 id="chatSidebarTitle">Chat</h5>
+            <button type="button" class="btn-close" id="closeChatSidebar" aria-label="Close">✕</button>
+        </div>
+        <div class="chat-sidebar-body">
+            <div id="chat-container">
+                <div class="text-center p-4">
+                    <p>Loading chat...</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg" aria-label="Main navigation">
         <div class="container-fluid">
-            <a class="navbar-brand" href="../index.php" aria-label="Job Portal Home">Job Portal</a>
+            <a class="navbar-brand" href="../index.php" aria-label="RookieRise Home">RookieRise</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
                 data-bs-target="#navbarNav" aria-controls="navbarNav" 
                 aria-expanded="false" aria-label="Toggle navigation">
@@ -761,6 +903,22 @@ if ($user_role === 'employer') {
     </nav>
 
     <main class="container mt-4" role="main">
+        <!-- Display Success/Error Messages -->
+        <?php if (isset($_SESSION['success_message'])): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <?php echo htmlspecialchars($_SESSION['success_message']); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <?php unset($_SESSION['success_message']); ?>
+        <?php endif; ?>
+        <?php if (isset($_SESSION['error_message'])): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <?php echo htmlspecialchars($_SESSION['error_message']); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <?php unset($_SESSION['error_message']); ?>
+        <?php endif; ?>
+
         <!-- Welcome Section -->
         <section class="welcome-section" aria-labelledby="welcome-heading">
             <h2 class="display-5" id="welcome-heading">Welcome, <?php echo htmlspecialchars($user_name); ?>!</h2>
@@ -777,6 +935,34 @@ if ($user_role === 'employer') {
                    aria-label="Explore Hackathons">Explore Hackathons</a>
             <?php endif; ?>
         </section>
+
+        <!-- Notification Section for Job Seekers -->
+        <?php if ($user_role === 'jobseeker' && !empty($new_jobs)): ?>
+            <section class="notification-section" aria-labelledby="notification-heading">
+                <h3 id="notification-heading">New Job Postings</h3>
+                <div class="notification-list">
+                    <?php foreach ($new_jobs as $new_job): ?>
+                        <div class="notification-item">
+                            <div>
+                                <strong><?php echo htmlspecialchars($new_job['title']); ?></strong>
+                                <p class="mb-0 text-muted">
+                                    Posted on: <?php echo date('M d, Y, H:i A', strtotime($new_job['created_at'])); ?>
+                                </p>
+                            </div>
+                            <div>
+                                <button type="button" class="btn btn-info btn-sm view-job-btn" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#jobDetailsModal-<?php echo $new_job['id']; ?>" 
+                                        data-job-id="<?php echo $new_job['id']; ?>" 
+                                        aria-label="View details for <?php echo htmlspecialchars($new_job['title']); ?>">
+                                    View
+                                </button>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </section>
+        <?php endif; ?>
 
         <!-- Hackathon Summary Section -->
         <section class="hackathon-section" aria-labelledby="hackathon-heading">
@@ -943,11 +1129,13 @@ if ($user_role === 'employer') {
                                         Applied for: <?php echo htmlspecialchars($message['job_title']); ?>
                                     </p>
                                 </div>
-                                <a href="chat.php?with=<?php echo $message['id']; ?>" 
-                                   class="btn btn-primary btn-sm" 
-                                   aria-label="Chat with <?php echo htmlspecialchars($message['name']); ?>">
+                                <button class="btn btn-primary btn-sm open-chat-sidebar" 
+                                        data-applicant-id="<?php echo $message['id']; ?>" 
+                                        data-name="<?php echo htmlspecialchars($message['name']); ?>" 
+                                        data-email="<?php echo htmlspecialchars($message['email'] ?? ''); ?>" 
+                                        aria-label="Chat with <?php echo htmlspecialchars($message['name']); ?>">
                                     Chat
-                                </a>
+                                </button>
                             </li>
                         <?php endforeach; ?>
                     </ul>
@@ -991,6 +1179,20 @@ if ($user_role === 'employer') {
                                 
                                 <!-- Job Seeker: Apply Form and Chat with Employer -->
                                 <?php if ($user_role === 'jobseeker'): ?>
+                                    <?php
+                                    // Fetch the employer's email
+                                    $employer_stmt = $conn->prepare("SELECT email, name FROM users WHERE id = ?");
+                                    $employer_stmt->bind_param("i", $job['employer_id']);
+                                    $employer_stmt->execute();
+                                    $employer_result = $employer_stmt->get_result();
+                                    $employer = $employer_result->fetch_assoc();
+                                    $employer_email = null;
+                                    if ($employer && filter_var($employer['email'], FILTER_VALIDATE_EMAIL)) {
+                                        $employer_email = htmlspecialchars($employer['email'], ENT_QUOTES, 'UTF-8');
+                                    }
+                                    $employer_name = htmlspecialchars($employer['name'] ?? 'Employer', ENT_QUOTES, 'UTF-8');
+                                    $employer_stmt->close();
+                                    ?>
                                     <form method="POST" action="../applications/apply_job.php" 
                                           enctype="multipart/form-data" class="apply-form d-inline-block">
                                         <input type="hidden" name="job_id" value="<?php echo $job['id']; ?>">
@@ -1020,10 +1222,13 @@ if ($user_role === 'employer') {
                                                     aria-label="View details for <?php echo htmlspecialchars($job['title']); ?>">
                                                 View
                                             </button>
-                                            <a href="chat.php?with=<?php echo $job['employer_id']; ?>" class="btn btn-primary me-2" 
-                                               aria-label="Chat with employer for <?php echo htmlspecialchars($job['title']); ?>">
+                                            <button class="btn btn-primary me-2 open-chat-sidebar" 
+                                                    data-applicant-id="<?php echo $job['employer_id']; ?>" 
+                                                    data-name="<?php echo $employer_name; ?>" 
+                                                    data-email="<?php echo htmlspecialchars($employer_email ?? ''); ?>" 
+                                                    aria-label="Chat with employer for <?php echo htmlspecialchars($job['title']); ?>">
                                                 Chat with Employer
-                                            </a>
+                                            </button>
                                         </div>
                                     </form>
                                 <?php endif; ?>
@@ -1036,15 +1241,13 @@ if ($user_role === 'employer') {
                                            aria-label="Edit job <?php echo htmlspecialchars($job['title']); ?>">
                                             Edit
                                         </a>
-                                        <form method="POST" action="../jobs/remove_job.php" 
-                                              class="d-inline-block delete-form">
-                                            <input type="hidden" name="job_id" value="<?php echo $job['id']; ?>">
-                                            <button type="submit" class="btn btn-danger me-2" 
-                                                    onclick="return confirm('Are you sure you want to delete this job?');"
-                                                    aria-label="Delete job <?php echo htmlspecialchars($job['title']); ?>">
-                                                Remove
-                                            </button>
-                                        </form>
+                                        <button type="button" class="btn btn-danger me-2 delete-job-btn" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteJobModal-<?php echo $job['id']; ?>" 
+                                                data-job-id="<?php echo $job['id']; ?>" 
+                                                aria-label="Delete job <?php echo htmlspecialchars($job['title']); ?>">
+                                            Remove
+                                        </button>
                                     </div>
                                 <?php endif; ?>
                             </div>
@@ -1085,6 +1288,36 @@ if ($user_role === 'employer') {
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Delete Confirmation Modal -->
+                        <?php if ($user_role === 'employer'): ?>
+                            <div class="modal fade" id="deleteJobModal-<?php echo $job['id']; ?>" tabindex="-1" 
+                                 aria-labelledby="deleteJobModalLabel-<?php echo $job['id']; ?>" aria-hidden="true">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="deleteJobModalLabel-<?php echo $job['id']; ?>">
+                                                Confirm Deletion
+                                            </h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" 
+                                                    aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Are you sure you want to delete the job "<strong><?php echo htmlspecialchars($job['title']); ?></strong>"? This action cannot be undone.</p>
+                                            <p><strong>Note:</strong> This will also delete all related applications and interview sessions associated with this job.</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <form method="POST" action="../jobs/remove_job.php" class="d-inline-block delete-form">
+                                                <input type="hidden" name="job_id" value="<?php echo $job['id']; ?>">
+                                                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+                                                <button type="submit" class="btn btn-danger">Delete</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
                     <?php endwhile; ?>
                 <?php else: ?>
                     <div class="alert alert-info rounded-pill text-center" 
@@ -1118,7 +1351,7 @@ if ($user_role === 'employer') {
         <div class="container">
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <h5>Job Portal</h5>
+                    <h5>RookieRise</h5>
                     <p>Connecting talent with opportunities since 2025.</p>
                 </div>
                 <div class="col-md-4 mb-3">
@@ -1162,7 +1395,7 @@ if ($user_role === 'employer') {
             </div>
             <hr style="border-color: rgba(255,255,255,0.2);;">
             <div class="text-center">
-                <p class="mb-0">© <?php echo date('Y'); ?> Job Portal. All rights reserved.</p>
+                <p class="mb-0">© <?php echo date('Y'); ?> RookieRise. All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -1179,6 +1412,14 @@ if ($user_role === 'employer') {
     </div>
     <button id="toggleChatbot" class="btn btn-primary" aria-label="Toggle Chatbot">💬</button>
 
+    <!-- TalkJS Script -->
+    <script>
+        (function(t,a,l,k,j,s){
+        s=a.createElement('script');s.async=1;s.src='https://cdn.talkjs.com/talk.js';a.head.appendChild(s)
+        ;k=t.Promise;t.Talk={v:3,ready:{then:function(f){if(k)return new k(function(r,e){l.push([f,r,e])});l
+        .push([f])},catch:function(){return k&&new k()},c:l}};})(window,document,[]);
+    </script>
+
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" 
             integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" 
@@ -1191,19 +1432,6 @@ if ($user_role === 'employer') {
             crossorigin="anonymous"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Existing JavaScript remains unchanged until here...
-
-            // Chatbot Toggle Functionality
-            const toggleChatbotBtn = document.getElementById('toggleChatbot');
-            const chatbotEmbed = document.querySelector('zapier-interfaces-chatbot-embed');
-            
-            toggleChatbotBtn.addEventListener('click', () => {
-                const isVisible = chatbotEmbed.style.display === 'block';
-                chatbotEmbed.style.display = isVisible ? 'none' : 'block';
-                toggleChatbotBtn.textContent = isVisible ? '💬' : '✖'; // Change icon based on state
-                toggleChatbotBtn.setAttribute('aria-label', isVisible ? 'Show Chatbot' : 'Hide Chatbot');
-            });
-
             // Log the number of job cards for debugging
             const jobCards = document.querySelectorAll('.card');
             console.log('Number of job cards:', jobCards.length);
@@ -1227,6 +1455,18 @@ if ($user_role === 'employer') {
                 opacity: 0,
                 y: 100,
                 ease: 'back.out(1.7)'
+            });
+
+            gsap.from('.notification-section', {
+                scrollTrigger: {
+                    trigger: '.notification-section',
+                    start: 'top 80%',
+                    toggleActions: 'play none none none'
+                },
+                duration: 1,
+                opacity: 0,
+                y: 50,
+                ease: 'power2.out'
             });
 
             gsap.from('.search-bar', {
@@ -1299,15 +1539,6 @@ if ($user_role === 'employer') {
                 });
             });
 
-            // Delete Confirmation
-            document.querySelectorAll('.delete-form').forEach(form => {
-                form.addEventListener('submit', (e) => {
-                    if (!confirm('Are you sure you want to delete this job?')) {
-                        e.preventDefault();
-                    }
-                });
-            });
-
             // Bookmark Functionality
             document.querySelectorAll('.bookmark-btn').forEach(button => {
                 button.addEventListener('click', async (e) => {
@@ -1345,8 +1576,8 @@ if ($user_role === 'employer') {
                 });
             });
 
-            // Modal Animation for Job Details
-            document.querySelectorAll('.view-job-btn').forEach(button => {
+            // Modal Animation for Job Details and Delete Confirmation
+            document.querySelectorAll('.view-job-btn, .delete-job-btn').forEach(button => {
                 button.addEventListener('click', () => {
                     const modal = document.querySelector(button.getAttribute('data-bs-target'));
                     if (modal) {
@@ -1361,7 +1592,7 @@ if ($user_role === 'employer') {
                 });
             });
 
-            // Fix scrolling when job modal is closed
+            // Fix scrolling when modals are closed
             document.querySelectorAll('.modal').forEach(modal => {
                 modal.addEventListener('hidden.bs.modal', () => {
                     document.body.classList.remove('modal-open');
@@ -1373,6 +1604,120 @@ if ($user_role === 'employer') {
                 modal.addEventListener('shown.bs.modal', () => {
                     document.body.classList.add('modal-open');
                     document.body.style.overflow = 'hidden';
+                });
+            });
+
+            // Chatbot Toggle Functionality
+            const toggleChatbotBtn = document.getElementById('toggleChatbot');
+            const chatbotEmbed = document.querySelector('zapier-interfaces-chatbot-embed');
+            
+            toggleChatbotBtn.addEventListener('click', () => {
+                const isVisible = chatbotEmbed.style.display === 'block';
+                chatbotEmbed.style.display = isVisible ? 'none' : 'block';
+                toggleChatbotBtn.textContent = isVisible ? '💬' : '✕'; // Change icon based on state
+                toggleChatbotBtn.setAttribute('aria-label', isVisible ? 'Show Chatbot' : 'Hide Chatbot');
+            });
+
+            // Chat Sidebar Functionality
+            const chatSidebar = document.getElementById('chatSidebar');
+            const chatSidebarTitle = document.getElementById('chatSidebarTitle');
+            const chatContainer = document.getElementById('chat-container');
+            const closeChatSidebar = document.getElementById('closeChatSidebar');
+            let currentChatbox = null;
+
+            function openChatSidebar(applicantId, name, email) {
+                // Validate and normalize the applicant's email
+                let validatedEmail = null;
+                if (email && email.trim() !== '' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    validatedEmail = email;
+                }
+
+                // Update sidebar title
+                chatSidebarTitle.textContent = `Chat with ${name}`;
+
+                // Reset the chat container
+                chatContainer.innerHTML = '<div class="text-center p-4"><p>Loading chat...</p></div>';
+
+                // Initialize TalkJS chat
+                Talk.ready.then(() => {
+                    console.log("TalkJS is ready, initializing users...");
+                    const me = new Talk.User({
+                        id: <?php echo $user_id; ?>,
+                        name: '<?php echo htmlspecialchars($user_name); ?>',
+                        email: <?php echo $user_email ? json_encode($user_email) : 'null'; ?>,
+                        role: '<?php echo $user_role; ?>',
+                        welcomeMessage: "Hi!"
+                    });
+                    const other = new Talk.User({
+                        id: applicantId,
+                        name: name,
+                        email: validatedEmail,
+                        role: '<?php echo $user_role === "employer" ? "jobseeker" : "employer"; ?>',
+                        welcomeMessage: "Hey, how can I help?"
+                    });
+                    console.log("Users initialized:", { me: me, other: other });
+
+                    const session = new Talk.Session({
+                        appId: 'tkr3cqVc', // Your TalkJS App ID
+                        me: me
+                    });
+                    console.log("Session created");
+
+                    const conversationId = Talk.oneOnOneId(me, other);
+                    console.log("Conversation ID:", conversationId);
+
+                    const conversation = session.getOrCreateConversation(conversationId);
+                    conversation.setParticipant(me);
+                    conversation.setParticipant(other);
+                    console.log("Conversation created:", conversation.id);
+
+                    // Create and mount the chatbox
+                    if (currentChatbox) {
+                        currentChatbox.destroy();
+                    }
+                    currentChatbox = session.createChatbox();
+                    currentChatbox.select(conversation);
+
+                    currentChatbox.mount(chatContainer).catch(error => {
+                        console.error("Failed to mount TalkJS chatbox:", error);
+                        chatContainer.innerHTML = `
+                            <div class="text-center p-4">
+                                <p class="text-danger">Error: Unable to load chat. Please try again later.</p>
+                            </div>
+                        `;
+                    });
+
+                    // Open the sidebar
+                    chatSidebar.classList.add('open');
+                }).catch(error => {
+                    console.error('TalkJS initialization failed:', error);
+                    chatContainer.innerHTML = `
+                        <div class="text-center p-4">
+                            <p class="text-danger">Error: Unable to initialize chat. Please try again later.</p>
+                        </div>
+                    `;
+                    chatSidebar.classList.add('open');
+                });
+            }
+
+            function closeChatSidebarHandler() {
+                chatSidebar.classList.remove('open');
+                if (currentChatbox) {
+                    currentChatbox.destroy();
+                    currentChatbox = null;
+                }
+                chatContainer.innerHTML = '<div class="text-center p-4"><p>Loading chat...</p></div>';
+            }
+
+            closeChatSidebar.addEventListener('click', closeChatSidebarHandler);
+
+            // Open Chat Sidebar for "Chat with Employer" and "Chat" Buttons
+            document.querySelectorAll('.open-chat-sidebar').forEach(button => {
+                button.addEventListener('click', () => {
+                    const applicantId = button.getAttribute('data-applicant-id');
+                    const name = button.getAttribute('data-name');
+                    const email = button.getAttribute('data-email');
+                    openChatSidebar(applicantId, name, email);
                 });
             });
         });
