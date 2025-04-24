@@ -213,10 +213,14 @@ if ($user_role === 'employer') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="description" content="RookieRise Dashboard - Manage your job listings, applications, and hackathons">
-    <meta name="keywords" content="RookieRise, dashboard, jobs, applications, hackathons">
-    <meta name="author" content="RookieRise Team">
-    <title>Dashboard | RookieRise</title>
+    <meta name="description" content="RookieRise
+ Dashboard - Manage your job listings, applications, and hackathons">
+    <meta name="keywords" content="RookieRise
+, dashboard, jobs, applications, hackathons">
+    <meta name="author" content="RookieRise
+ Team">
+    <title>Dashboard | RookieRise
+</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" 
           integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" 
           crossorigin="anonymous">
@@ -403,6 +407,7 @@ if ($user_role === 'employer') {
             gap: 2rem;
             padding: 2rem 0;
             opacity: 1; /* Ensure initial visibility */
+            margin-bottom: 5rem;    
         }
 
         .card {
@@ -705,7 +710,22 @@ if ($user_role === 'employer') {
             right: 20px;
             z-index: 1070; /* Higher than toast (1060) and modal (1055) */
         }
-
+         #overlay-box {
+            position: fixed;
+            bottom: 80px;
+            right: 10px;
+            width: 450px;
+            height: 50px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            text-align: center;
+            line-height: 50px;
+            font-size: 16px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            display: none;
+            z-index: 9999;
+        }
         #toggleChatbot {
             position: fixed;
             bottom: 20px;
@@ -727,7 +747,49 @@ if ($user_role === 'employer') {
             box-shadow: 0 5px 15px rgba(0,0,0,0.2);
             overflow: hidden;
         }
-
+        #chatbot-button {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 60px;
+            height: 60px;
+            background-color: #007bff;
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            line-height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+        }
+        #chatbot-button:hover {
+            background-color: #0056b3;
+        }
+        #chatbot-container {
+            position: fixed;
+            bottom: 80px;
+            right: 10px;
+            width: 450px;
+            height: 700px;
+            z-index: 9998;
+        }
+        #overlay-box {
+            position: fixed;
+            bottom: 80px;
+            right: 10px;
+            width: 450px;
+            height: 50px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            text-align: center;
+            line-height: 50px;
+            font-size: 16px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            display: none;
+            z-index: 9999;
+        }
         /* Attempt to hide "Made with Zapier" branding */
         zapier-interfaces-chatbot-embed::part(footer),
         zapier-interfaces-chatbot-embed [slot="footer"] {
@@ -853,7 +915,9 @@ if ($user_role === 'employer') {
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg" aria-label="Main navigation">
         <div class="container-fluid">
-            <a class="navbar-brand" href="../index.php" aria-label="RookieRise Home">RookieRise</a>
+            <a class="navbar-brand" href="../index.php" aria-label="RookieRise
+ Home">RookieRise
+</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" 
                 data-bs-target="#navbarNav" aria-controls="navbarNav" 
                 aria-expanded="false" aria-label="Toggle navigation">
@@ -875,6 +939,16 @@ if ($user_role === 'employer') {
                                 View Applications
                             </a>
                         </li>
+                    <?php endif; ?>
+                    <?php if ($user_role === 'employer'): ?>
+                        <li class="nav-item">
+    <a class="nav-link" href="http://127.0.0.1:5000" 
+       target="_blank" 
+       aria-label="View Applications">
+        Interview Portal
+    </a>
+</li>
+
                     <?php endif; ?>
                     <?php if ($user_role === 'jobseeker'): ?>
                         <li class="nav-item">
@@ -1326,7 +1400,7 @@ if ($user_role === 'employer') {
             </div>
 
             <!-- Pagination -->
-            <nav aria-label="Job listings pagination">
+            <!-- <nav aria-label="Job listings pagination">
                 <ul class="pagination justify-content-center">
                     <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
                         <a class="page-link" href="?page=<?php echo $page - 1; ?>" 
@@ -1342,7 +1416,7 @@ if ($user_role === 'employer') {
                            aria-label="Next page">Next</a>
                     </li>
                 </ul>
-            </nav>
+            </nav> -->
         </section>
     </main>
 
@@ -1351,7 +1425,8 @@ if ($user_role === 'employer') {
         <div class="container">
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <h5>RookieRise</h5>
+                    <h5>RookieRise
+</h5>
                     <p>Connecting talent with opportunities since 2025.</p>
                 </div>
                 <div class="col-md-4 mb-3">
@@ -1395,7 +1470,8 @@ if ($user_role === 'employer') {
             </div>
             <hr style="border-color: rgba(255,255,255,0.2);;">
             <div class="text-center">
-                <p class="mb-0">© <?php echo date('Y'); ?> RookieRise. All rights reserved.</p>
+                <p class="mb-0">© <?php echo date('Y'); ?> RookieRise
+. All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -1410,6 +1486,7 @@ if ($user_role === 'employer') {
             width="400px">
         </zapier-interfaces-chatbot-embed>
     </div>
+    <div id="overlay-box" style="display: none;">Chatbot is active</div>
     <button id="toggleChatbot" class="btn btn-primary" aria-label="Toggle Chatbot">💬</button>
 
     <!-- TalkJS Script -->

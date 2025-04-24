@@ -224,7 +224,6 @@ if ($user_role === 'jobseeker') {
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 2rem;
             padding: 2rem 0;
-            opacity: 1;
         }
 
         .card {
@@ -234,8 +233,6 @@ if ($user_role === 'jobseeker') {
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
-            opacity: 1;
-            display: block;
         }
 
         .card:hover {
@@ -264,7 +261,7 @@ if ($user_role === 'jobseeker') {
         .hackathon-meta {
             font-size: 0.9rem;
             color: #888;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
         }
 
         .hackathon-meta strong {
@@ -335,6 +332,31 @@ if ($user_role === 'jobseeker') {
             transform: scale(1.05);
         }
 
+        /* Details Section */
+        .hackathon-details {
+            max-height: 0;
+            overflow: hidden;
+            background: #f8f9fa;
+            padding: 0 1.5rem;
+            border-top: 1px solid #e0e0e0;
+            transition: max-height 0.3s ease, padding 0.1s ease;
+        }
+
+        .hackathon-details.active {
+            max-height: 300px; /* Adjust based on content height */
+            padding: 1.5rem;
+        }
+
+        .hackathon-details p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+            color: #666;
+        }
+
+        .hackathon-details strong {
+            color: #1a2a44;
+        }
+
         /* Past Hackathons Section */
         .past-hackathons {
             margin: 2rem 0;
@@ -371,46 +393,6 @@ if ($user_role === 'jobseeker') {
 
         .past-hackathons .list-group-item .text-muted {
             font-size: 0.9rem;
-        }
-
-        /* Modal Styling */
-        .modal-content {
-            border-radius: 15px;
-            background: #fff;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            border: none;
-        }
-
-        .modal-header {
-            background: #f8f9fa;
-            border-radius: 15px 15px 0 0;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1a2a44;
-        }
-
-        .modal-body {
-            padding: 2rem;
-        }
-
-        .hackathon-details p {
-            margin-bottom: 1rem;
-            line-height: 1.6;
-            color: #666;
-        }
-
-        .hackathon-details strong {
-            color: #1a2a44;
-        }
-
-        .modal-footer {
-            border-top: 1px solid #e0e0e0;
-            border-radius: 0 0 15px 15px;
-            background: #f8f9fa;
         }
 
         /* Toast Notification */
@@ -666,11 +648,9 @@ if ($user_role === 'jobseeker') {
                                                 </button>
                                             </form>
                                         <?php endif; ?>
-                                        <button type="button" class="btn btn-info view-hackathon-btn" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#hackathonDetailsModal-<?php echo $hackathon['id']; ?>" 
+                                        <button type="button" class="btn btn-info view-details-btn" 
                                                 data-hackathon-id="<?php echo $hackathon['id']; ?>" 
-                                                aria-label="View details for <?php echo htmlspecialchars($hackathon['title']); ?>">
+                                                aria-label="Toggle details for <?php echo htmlspecialchars($hackathon['title']); ?>">
                                             View Details
                                         </button>
                                     <?php endif; ?>
@@ -694,36 +674,16 @@ if ($user_role === 'jobseeker') {
                                     <?php endif; ?>
                                 </div>
                             </div>
-                        </article>
-
-                        <!-- Hackathon Details Modal -->
-                        <div class="modal fade" id="hackathonDetailsModal-<?php echo $hackathon['id']; ?>" tabindex="-1" 
-                             aria-labelledby="hackathonDetailsModalLabel-<?php echo $hackathon['id']; ?>" aria-hidden="true">
-                            <div class="modal-dialog modal-lg modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="hackathonDetailsModalLabel-<?php echo $hackathon['id']; ?>">
-                                            <?php echo htmlspecialchars($hackathon['title']); ?>
-                                        </h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" 
-                                                aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="hackathon-details">
-                                            <p><strong>Description:</strong></p>
-                                            <p><?php echo nl2br(htmlspecialchars($hackathon['description'])); ?></p>
-                                            <p><strong>Date:</strong> <?php echo date('M d, Y, H:i', strtotime($hackathon['date'])); ?></p>
-                                            <p><strong>Location:</strong> <?php echo htmlspecialchars($hackathon['location']); ?></p>
-                                            <p><strong>Organizer:</strong> <?php echo htmlspecialchars($hackathon['organizer_name']); ?></p>
-                                            <p><strong>Registration Deadline:</strong> <?php echo date('M d, Y, H:i', strtotime($hackathon['registration_deadline'])); ?></p>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    </div>
-                                </div>
+                            <!-- Details Section -->
+                            <div class="hackathon-details" id="details-<?php echo $hackathon['id']; ?>">
+                                <p><strong>Description:</strong></p>
+                                <p><?php echo nl2br(htmlspecialchars($hackathon['description'])); ?></p>
+                                <p><strong>Date:</strong> <?php echo date('M d, Y, H:i', strtotime($hackathon['date'])); ?></p>
+                                <p><strong>Location:</strong> <?php echo htmlspecialchars($hackathon['location']); ?></p>
+                                <p><strong>Organizer:</strong> <?php echo htmlspecialchars($hackathon['organizer_name']); ?></p>
+                                <p><strong>Registration Deadline:</strong> <?php echo date('M d, Y, H:i', strtotime($hackathon['registration_deadline'])); ?></p>
                             </div>
-                        </div>
+                        </article>
 
                         <!-- Edit Hackathon Modal (for Employers) -->
                         <?php if ($user_role === 'employer' && $hackathon['employer_id'] == $user_id): ?>
@@ -765,7 +725,7 @@ if ($user_role === 'jobseeker') {
                                                 <div class="mb-3">
                                                     <label for="organizer-<?php echo $hackathon['id']; ?>" class="form-label">Organizer</label>
                                                     <input type="text" class="form-control" id="organizer-<?php echo $hackathon['id']; ?>" 
-                                                           name="organizer" value="<?php echo htmlspecialchars($hackathon['organizer']); ?>" required>
+                                                           name="organizer" value="<?php echo htmlspecialchars($hackathon['organizer_name']); ?>" required>
                                                 </div>
                                                 <div class="mb-3">
                                                     <label for="registration_deadline-<?php echo $hackathon['id']; ?>" class="form-label">Registration Deadline</label>
@@ -823,40 +783,19 @@ if ($user_role === 'jobseeker') {
                                     Organizer: <?php echo htmlspecialchars($past_hackathon['organizer_name']); ?>
                                 </p>
                             </div>
-                            <button type="button" class="btn btn-info btn-sm view-hackathon-btn" 
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#pastHackathonDetailsModal-<?php echo $past_hackathon['id']; ?>" 
-                                    aria-label="View details for past hackathon <?php echo htmlspecialchars($past_hackathon['title']); ?>">
+                            <button type="button" class="btn btn-info btn-sm view-details-btn" 
+                                    data-hackathon-id="<?php echo $past_hackathon['id']; ?>" 
+                                    aria-label="Toggle details for past hackathon <?php echo htmlspecialchars($past_hackathon['title']); ?>">
                                 View Details
                             </button>
                         </li>
-
-                        <!-- Past Hackathon Details Modal -->
-                        <div class="modal fade" id="pastHackathonDetailsModal-<?php echo $past_hackathon['id']; ?>" tabindex="-1" 
-                             aria-labelledby="pastHackathonDetailsModalLabel-<?php echo $past_hackathon['id']; ?>" aria-hidden="true">
-                            <div class="modal-dialog modal-lg modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="pastHackathonDetailsModalLabel-<?php echo $past_hackathon['id']; ?>">
-                                            <?php echo htmlspecialchars($past_hackathon['title']); ?>
-                                        </h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" 
-                                                aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="hackathon-details">
-                                            <p><strong>Description:</strong></p>
-                                            <p><?php echo nl2br(htmlspecialchars($past_hackathon['description'])); ?></p>
-                                            <p><strong>Date:</strong> <?php echo date('M d, Y, H:i', strtotime($past_hackathon['date'])); ?></p>
-                                            <p><strong>Location:</strong> <?php echo htmlspecialchars($past_hackathon['location']); ?></p>
-                                            <p><strong>Organizer:</strong> <?php echo htmlspecialchars($past_hackathon['organizer_name']); ?></p>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    </div>
-                                </div>
-                            </div>
+                        <!-- Past Hackathon Details Section -->
+                        <div class="hackathon-details" id="details-<?php echo $past_hackathon['id']; ?>">
+                            <p><strong>Description:</strong></p>
+                            <p><?php echo nl2br(htmlspecialchars($past_hackathon['description'])); ?></p>
+                            <p><strong>Date:</strong> <?php echo date('M d, Y, H:i', strtotime($past_hackathon['date'])); ?></p>
+                            <p><strong>Location:</strong> <?php echo htmlspecialchars($past_hackathon['location']); ?></p>
+                            <p><strong>Organizer:</strong> <?php echo htmlspecialchars($past_hackathon['organizer_name']); ?></p>
                         </div>
                     <?php endwhile; ?>
                 </ul>
@@ -926,68 +865,8 @@ if ($user_role === 'jobseeker') {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" 
             integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" 
             crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" 
-            integrity="sha512-16esztaSRplJROstbIIdwX3N97V1+pZvV33ABoG1H2OyTttBxEGkTsoIVsiP1iaTtM8b3+hu2kB6pQ4Clr5yug==" 
-            crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" 
-            integrity="sha512-Ic9xkERjyZ1xgJ5svx3y0u3xrvfT/uPkV99LBwe68xjy/mGtO+4eURHZBW2xW4SZbFrF1Tf090XqB+EVgXnVjw==" 
-            crossorigin="anonymous"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // GSAP Animations
-            gsap.from('.navbar', {
-                duration: 1,
-                opacity: 0,
-                y: -50,
-                ease: 'power2.out'
-            });
-
-            gsap.from('.welcome-section', {
-                duration: 1.5,
-                opacity: 0,
-                y: 100,
-                ease: 'back.out(1.7)'
-            });
-
-            gsap.from('.search-bar', {
-                duration: 1,
-                opacity: 0,
-                scale: 0.5,
-                ease: 'back.out(1.7)'
-            });
-
-            gsap.from('.card', {
-                duration: 1,
-                opacity: 0,
-                y: 50,
-                stagger: 0.2,
-                ease: 'power2.out'
-            });
-
-            gsap.from('.past-hackathons', {
-                scrollTrigger: {
-                    trigger: '.past-hackathons',
-                    start: 'top 80%',
-                    toggleActions: 'play none none none'
-                },
-                duration: 1,
-                opacity: 0,
-                y: 50,
-                ease: 'power2.out'
-            });
-
-            gsap.from('footer', {
-                scrollTrigger: {
-                    trigger: 'footer',
-                    start: 'top 80%',
-                    toggleActions: 'play none none none'
-                },
-                duration: 1,
-                opacity: 0,
-                y: 50,
-                ease: 'power2.out'
-            });
-
             // Search Functionality
             const searchInput = document.querySelector('.search-bar input');
             const hackathonCards = document.querySelectorAll('.card');
@@ -998,7 +877,6 @@ if ($user_role === 'jobseeker') {
                     const description = card.querySelector('.card-text').textContent.toLowerCase();
                     const isVisible = title.includes(searchTerm) || description.includes(searchTerm);
                     card.style.display = isVisible ? 'block' : 'none';
-                    card.style.opacity = isVisible ? '1' : '0';
                 });
             });
 
@@ -1025,16 +903,23 @@ if ($user_role === 'jobseeker') {
                 });
             });
 
-            // Modal Animation
-            document.querySelectorAll('.view-hackathon-btn').forEach(button => {
+            // Toggle Details Section
+            document.querySelectorAll('.view-details-btn').forEach(button => {
                 button.addEventListener('click', () => {
-                    const modal = document.querySelector(button.getAttribute('data-bs-target'));
-                    gsap.from(modal.querySelector('.modal-content'), {
-                        duration: 0.5,
-                        scale: 0.8,
-                        opacity: 0,
-                        ease: 'back.out(1.7)'
+                    const hackathonId = button.getAttribute('data-hackathon-id');
+                    const detailsSection = document.getElementById(`details-${hackathonId}`);
+                    const isActive = detailsSection.classList.contains('active');
+
+                    // Close all other details sections
+                    document.querySelectorAll('.hackathon-details.active').forEach(otherSection => {
+                        if (otherSection !== detailsSection) {
+                            otherSection.classList.remove('active');
+                        }
                     });
+
+                    // Toggle the clicked section
+                    detailsSection.classList.toggle('active');
+                    button.textContent = isActive ? 'View Details' : 'Hide Details';
                 });
             });
 

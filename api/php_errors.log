@@ -1,0 +1,5 @@
+[14-Apr-2025 16:12:34 Europe/Berlin] PHP Warning:  require_once(C:\xampp\htdocs\JobPortal\api/../../includes/db.php): Failed to open stream: No such file or directory in C:\xampp\htdocs\JobPortal\api\save_notes.php on line 18
+[14-Apr-2025 16:12:34 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required 'C:\xampp\htdocs\JobPortal\api/../../includes/db.php' (include_path='C:\xampp\php\PEAR') in C:\xampp\htdocs\JobPortal\api\save_notes.php:18
+Stack trace:
+#0 {main}
+  thrown in C:\xampp\htdocs\JobPortal\api\save_notes.php on line 18

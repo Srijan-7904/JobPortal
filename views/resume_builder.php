@@ -157,6 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_resume'])) {
         $stmt->close();
     }
 }
+
 // Handle PDF download via PDFShift
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['download_pdf'])) {
     if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
@@ -176,41 +177,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['download_pdf'])) {
                 font-size: 11pt;
                 line-height: 1.5;
                 margin: 0.75in;
-                color: #333;
+                color: #000;
             }
             .container {
                 max-width: 7.5in;
                 margin: 0 auto;
             }
             .header {
-                border-bottom: 2px solid #2c3e50;
                 padding-bottom: 0.25in;
                 margin-bottom: 0.25in;
+                text-align: center;
             }
             .header h1 {
-                font-size: 20pt;
+                font-size: 18pt;
                 font-weight: bold;
                 margin: 0;
                 color: #2c3e50;
             }
             .header p {
-                font-size: 10pt;
+                font-size: 9pt;
                 margin: 0.1in 0 0;
-                color: #555;
+                color: #000;
             }
             .section {
                 margin-bottom: 0.3in;
             }
             .section h2 {
-                font-size: 14pt;
+                font-size: 12pt;
                 font-weight: bold;
                 color: #2c3e50;
-                border-bottom: 1px solid #ddd;
+                text-transform: uppercase;
+                border-bottom: 1px solid lightgray;
                 padding-bottom: 0.05in;
                 margin-bottom: 0.15in;
             }
             .entry {
                 margin-bottom: 0.2in;
+                position: relative;
             }
             .entry-title {
                 font-weight: bold;
@@ -219,21 +222,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['download_pdf'])) {
             }
             .entry-subtitle {
                 font-size: 10pt;
-                color: #666;
+                color: #000;
                 margin-bottom: 0.05in;
+            }
+            .entry-date {
+                position: absolute;
+                right: 0;
+                top: 0;
+                font-size: 10pt;
+                color: #000;
             }
             .entry-content {
                 font-size: 10pt;
                 margin: 0;
             }
-            .skills-list {
-                column-count: 2;
-                column-gap: 0.5in;
-                margin-top: 0.1in;
+            .entry-content ul {
+                margin-left: 1.5rem;
+                list-style-type: disc;
             }
-            .skills-list p {
-                margin: 0 0 0.1in 0;
-                break-inside: avoid;
+            .education-entry {
+                display: flex;
+                justify-content: space-between;
+                align-items: baseline;
+            }
+            .education-details {
+                font-weight: bold;
+                font-size: 11pt;
+            }
+            .education-year {
+                font-size: 10pt;
+                color: #000;
             }
             @page {
                 size: A4;
@@ -263,18 +281,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['download_pdf'])) {
                 </div>
             <?php endif; ?>
 
-            <!-- Work Experience -->
+            <!-- Skills -->
+            <?php if (!empty($resume_data['skills'])): ?>
+                <div class="section">
+                    <h2>Skills</h2>
+                    <div>
+                        <p class="entry-content"><?php echo htmlspecialchars(implode(', ', $resume_data['skills'])); ?></p>
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <!-- Projects (Work Experience) -->
             <?php if (!empty($resume_data['experience'])): ?>
                 <div class="section">
-                    <h2>Work Experience</h2>
+                    <h2>Projects</h2>
                     <?php foreach ($resume_data['experience'] as $exp): ?>
                         <div class="entry">
+                            <span class="entry-date"><?php echo htmlspecialchars($exp['dates']); ?></span>
                             <div class="entry-title"><?php echo htmlspecialchars($exp['job_title']); ?></div>
-                            <div class="entry-subtitle">
-                                <?php echo htmlspecialchars($exp['company']); ?>
-                                <?php echo $exp['dates'] ? ' | ' . htmlspecialchars($exp['dates']) : ''; ?>
+                            <div class="entry-subtitle"><?php echo htmlspecialchars($exp['company']); ?></div>
+                            <div class="entry-content">
+                                <ul>
+                                    <?php
+                                    $responsibilities = explode("\n", $exp['responsibilities']);
+                                    foreach ($responsibilities as $resp) {
+                                        if (trim($resp)) {
+                                            echo '<li>' . htmlspecialchars(trim($resp)) . '</li>';
+                                        }
+                                    }
+                                    ?>
+                                </ul>
                             </div>
-                            <p class="entry-content"><?php echo nl2br(htmlspecialchars($exp['responsibilities'])); ?></p>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -285,26 +322,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['download_pdf'])) {
                 <div class="section">
                     <h2>Education</h2>
                     <?php foreach ($resume_data['education'] as $edu): ?>
-                        <div class="entry">
-                            <div class="entry-title"><?php echo htmlspecialchars($edu['degree']); ?></div>
-                            <div class="entry-subtitle">
-                                <?php echo htmlspecialchars($edu['institution']); ?>
-                                <?php echo $edu['graduation_year'] ? ' | ' . htmlspecialchars($edu['graduation_year']) : ''; ?>
-                            </div>
+                        <div class="entry education-entry">
+                            <p class="education-details"><?php echo htmlspecialchars($edu['degree'] . ', ' . $edu['institution']); ?></p>
+                            <span class="education-year"><?php echo htmlspecialchars($edu['graduation_year']); ?></span>
                         </div>
                     <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-
-            <!-- Skills -->
-            <?php if (!empty($resume_data['skills'])): ?>
-                <div class="section">
-                    <h2>Skills</h2>
-                    <div class="skills-list">
-                        <?php foreach ($resume_data['skills'] as $skill): ?>
-                            <p><?php echo htmlspecialchars($skill); ?></p>
-                        <?php endforeach; ?>
-                    </div>
                 </div>
             <?php endif; ?>
 
@@ -313,7 +335,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['download_pdf'])) {
                 <?php foreach ($resume_data['custom_sections'] as $section): ?>
                     <div class="section">
                         <h2><?php echo htmlspecialchars($section['title']); ?></h2>
-                        <p class="entry-content"><?php echo nl2br(htmlspecialchars($section['content'])); ?></p>
+                        <div class="entry">
+                            <div class="entry-content">
+                                <ul>
+                                    <?php
+                                    $contents = explode("\n", $section['content']);
+                                    foreach ($contents as $content) {
+                                        if (trim($content)) {
+                                            echo '<li>' . htmlspecialchars(trim($content)) . '</li>';
+                                        }
+                                    }
+                                    ?>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
@@ -479,7 +514,7 @@ $nonce = base64_encode(random_bytes(16));
             opacity: 0.9;
         }
 
-        /* Existing Styles (Unchanged) */
+        /* Resume Form and Preview */
         .wizard-step {
             display: none;
         }
@@ -497,27 +532,85 @@ $nonce = base64_encode(random_bytes(16));
         }
 
         .resume-preview {
-            font-family: Arial, sans-serif;
-            font-size: 12pt;
-            line-height: 1.6;
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
         }
 
         .resume-preview h1 {
-            font-size: 16pt;
+            font-size: 18pt;
             font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 0.2rem;
+            text-align: center;
+        }
+
+        .resume-preview #preview-contact {
+            font-size: 9pt;
+            color: #000;
             margin-bottom: 0.5rem;
+            text-align: center;
         }
 
         .resume-preview h2 {
-            font-size: 14pt;
+            font-size: 12pt;
             font-weight: bold;
+            color: #2c3e50;
+            text-transform: uppercase;
+            border-bottom: 1px solid lightgray;
+            padding-bottom: 0.1rem;
             margin-top: 1rem;
             margin-bottom: 0.5rem;
-            border-bottom: 1px solid #000;
         }
 
         .resume-preview p {
+            margin-bottom: 0.3rem;
+            font-size: 10pt;
+        }
+
+        .resume-preview ul {
+            margin-left: 1.5rem;
+            font-size: 10pt;
+            list-style-type: disc;
+        }
+
+        .resume-preview .entry {
             margin-bottom: 0.5rem;
+            position: relative;
+        }
+
+        .resume-preview .entry-title {
+            font-weight: bold;
+            font-size: 11pt;
+        }
+
+        .resume-preview .entry-subtitle {
+            font-size: 10pt;
+            color: #000;
+        }
+
+        .resume-preview .entry-date {
+            position: absolute;
+            right: 0;
+            top: 0;
+            font-size: 10pt;
+            color: #000;
+        }
+
+        .resume-preview .education-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .resume-preview .education-details {
+            font-weight: bold;
+            font-size: 11pt;
+        }
+
+        .resume-preview .education-year {
+            font-size: 10pt;
+            color: #000;
         }
 
         .btn-primary {
@@ -751,30 +844,30 @@ $nonce = base64_encode(random_bytes(16));
                                 <button type="button" class="btn btn-primary next-step">Next</button>
                             </div>
 
-                            <!-- Step 3: Work Experience -->
+                            <!-- Step 3: Work Experience (Projects) -->
                             <div class="wizard-step" data-step="3">
-                                <h4>Step 3: Work Experience</h4>
+                                <h4>Step 3: Projects</h4>
                                 <div id="experience-entries">
                                     <?php if (!empty($resume_data['experience'])): ?>
                                         <?php foreach ($resume_data['experience'] as $index => $exp): ?>
                                             <div class="dynamic-entry">
                                                 <div class="form-group">
-                                                    <label>Job Title <span class="text-danger">*</span></label>
+                                                    <label>Project Title <span class="text-danger">*</span></label>
                                                     <input type="text" name="experience_job_title[]" class="form-control" required
                                                            value="<?php echo htmlspecialchars($exp['job_title']); ?>">
                                                 </div>
                                                 <div class="form-group">
-                                                    <label>Company</label>
+                                                    <label>Organization/Company (Optional)</label>
                                                     <input type="text" name="experience_company[]" class="form-control"
                                                            value="<?php echo htmlspecialchars($exp['company']); ?>">
                                                 </div>
                                                 <div class="form-group">
-                                                    <label>Dates (e.g., Jan 2020 - Present)</label>
+                                                    <label>Dates (e.g., Sep 2024)</label>
                                                     <input type="text" name="experience_dates[]" class="form-control"
                                                            value="<?php echo htmlspecialchars($exp['dates']); ?>">
                                                 </div>
                                                 <div class="form-group">
-                                                    <label>Responsibilities</label>
+                                                    <label>Description</label>
                                                     <textarea name="experience_responsibilities[]" class="form-control"><?php echo htmlspecialchars($exp['responsibilities']); ?></textarea>
                                                 </div>
                                                 <button type="button" class="btn btn-danger remove-entry">Remove</button>
@@ -783,27 +876,27 @@ $nonce = base64_encode(random_bytes(16));
                                     <?php else: ?>
                                         <div class="dynamic-entry">
                                             <div class="form-group">
-                                                <label>Job Title <span class="text-danger">*</span></label>
+                                                <label>Project Title <span class="text-danger">*</span></label>
                                                 <input type="text" name="experience_job_title[]" class="form-control" required>
                                             </div>
                                             <div class="form-group">
-                                                <label>Company</label>
+                                                <label>Organization/Company (Optional)</label>
                                                 <input type="text" name="experience_company[]" class="form-control">
                                             </div>
                                             <div class="form-group">
-                                                <label>Dates (e.g., Jan 2020 - Present)</label>
+                                                <label>Dates (e.g., Sep 2024)</label>
                                                 <input type="text" name="experience_dates[]" class="form-control">
                                             </div>
                                             <div class="form-group">
-                                                <label>Responsibilities</label>
+                                                <label>Description</label>
                                                 <textarea name="experience_responsibilities[]" class="form-control"></textarea>
                                             </div>
                                             <button type="button" class="btn btn-danger remove-entry">Remove</button>
                                         </div>
                                     <?php endif; ?>
                                 </div>
-                                <button type="button" class="btn btn-primary mb-3" id="add-experience">Add Experience</button>
-                                <div class="ats-tip">Use action verbs (e.g., "Developed," "Managed") and include keywords from job descriptions.</div>
+                                <button type="button" class="btn btn-primary mb-3" id="add-experience">Add Project</button>
+                                <div class="ats-tip">Describe your projects with clear outcomes and technologies used.</div>
                                 <button type="button" class="btn btn-primary prev-step me-2">Previous</button>
                                 <button type="button" class="btn btn-primary next-step">Next</button>
                             </div>
@@ -884,7 +977,7 @@ $nonce = base64_encode(random_bytes(16));
                             <!-- Step 5: Custom Sections -->
                             <div class="wizard-step" data-step="5">
                                 <h4>Step 5: Custom Sections</h4>
-                                <p>Add any additional sections to your resume, such as Certifications, Projects, or Awards.</p>
+                                <p>Add any additional sections to your resume, such as Certifications, Achievements, or Hobbies.</p>
                                 <div id="custom-section-entries">
                                     <?php if (!empty($resume_data['custom_sections'])): ?>
                                         <?php foreach ($resume_data['custom_sections'] as $index => $section): ?>
@@ -950,16 +1043,37 @@ $nonce = base64_encode(random_bytes(16));
                             <p id="preview-summary"><?php echo nl2br(htmlspecialchars($resume_data['summary'])); ?></p>
                         <?php endif; ?>
 
-                        <h2>Work Experience</h2>
+                        <?php if (!empty($resume_data['skills'])): ?>
+                            <h2>Skills</h2>
+                            <div id="preview-skills">
+                                <p class="entry-content"><?php echo htmlspecialchars(implode(', ', $resume_data['skills'])); ?></p>
+                            </div>
+                        <?php endif; ?>
+
+                        <h2>Projects</h2>
                         <div id="preview-experience">
                             <?php if (!empty($resume_data['experience'])): ?>
                                 <?php foreach ($resume_data['experience'] as $exp): ?>
-                                    <p><strong><?php echo htmlspecialchars($exp['job_title']); ?></strong></p>
-                                    <p><?php echo htmlspecialchars($exp['company']); ?><?php echo $exp['dates'] ? ' | ' . htmlspecialchars($exp['dates']) : ''; ?></p>
-                                    <p><?php echo nl2br(htmlspecialchars($exp['responsibilities'])); ?></p>
+                                    <div class="entry">
+                                        <span class="entry-date"><?php echo htmlspecialchars($exp['dates']); ?></span>
+                                        <p class="entry-title"><?php echo htmlspecialchars($exp['job_title']); ?></p>
+                                        <p class="entry-subtitle"><?php echo htmlspecialchars($exp['company']); ?></p>
+                                        <p class="entry-content">
+                                            <ul>
+                                                <?php
+                                                $responsibilities = explode("\n", $exp['responsibilities']);
+                                                foreach ($responsibilities as $resp) {
+                                                    if (trim($resp)) {
+                                                        echo '<li>' . htmlspecialchars(trim($resp)) . '</li>';
+                                                    }
+                                                }
+                                                ?>
+                                            </ul>
+                                        </p>
+                                    </div>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <p>Add your work experience here.</p>
+                                <p>Add your projects here.</p>
                             <?php endif; ?>
                         </div>
 
@@ -967,26 +1081,34 @@ $nonce = base64_encode(random_bytes(16));
                         <div id="preview-education">
                             <?php if (!empty($resume_data['education'])): ?>
                                 <?php foreach ($resume_data['education'] as $edu): ?>
-                                    <p><strong><?php echo htmlspecialchars($edu['degree']); ?></strong></p>
-                                    <p><?php echo htmlspecialchars($edu['institution']); ?><?php echo $edu['graduation_year'] ? ' | ' . htmlspecialchars($edu['graduation_year']) : ''; ?></p>
+                                    <div class="entry education-entry">
+                                        <p class="education-details"><?php echo htmlspecialchars($edu['degree'] . ', ' . $edu['institution']); ?></p>
+                                        <span class="education-year"><?php echo htmlspecialchars($edu['graduation_year']); ?></span>
+                                    </div>
                                 <?php endforeach; ?>
                             <?php else: ?>
                                 <p>Add your education here.</p>
                             <?php endif; ?>
                         </div>
 
-                        <?php if (!empty($resume_data['skills'])): ?>
-                            <h2>Skills</h2>
-                            <div id="preview-skills">
-                                <p><?php echo htmlspecialchars(implode(', ', $resume_data['skills'])); ?></p>
-                            </div>
-                        <?php endif; ?>
-
                         <div id="preview-custom-sections">
                             <?php if (!empty($resume_data['custom_sections'])): ?>
                                 <?php foreach ($resume_data['custom_sections'] as $section): ?>
                                     <h2><?php echo htmlspecialchars($section['title']); ?></h2>
-                                    <p><?php echo nl2br(htmlspecialchars($section['content'])); ?></p>
+                                    <div class="entry">
+                                        <p class="entry-content">
+                                            <ul>
+                                                <?php
+                                                $contents = explode("\n", $section['content']);
+                                                foreach ($contents as $content) {
+                                                    if (trim($content)) {
+                                                        echo '<li>' . htmlspecialchars(trim($content)) . '</li>';
+                                                    }
+                                                }
+                                                ?>
+                                            </ul>
+                                        </p>
+                                    </div>
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </div>
@@ -1124,25 +1246,25 @@ $nonce = base64_encode(random_bytes(16));
                 });
             });
 
-            // Dynamic Entries for Work Experience
+            // Dynamic Entries for Projects
             document.getElementById('add-experience').addEventListener('click', () => {
                 const entry = document.createElement('div');
                 entry.className = 'dynamic-entry';
                 entry.innerHTML = `
                     <div class="form-group">
-                        <label>Job Title <span class="text-danger">*</span></label>
+                        <label>Project Title <span class="text-danger">*</span></label>
                         <input type="text" name="experience_job_title[]" class="form-control" required>
                     </div>
                     <div class="form-group">
-                        <label>Company</label>
+                        <label>Organization/Company (Optional)</label>
                         <input type="text" name="experience_company[]" class="form-control">
                     </div>
                     <div class="form-group">
-                        <label>Dates (e.g., Jan 2020 - Present)</label>
+                        <label>Dates (e.g., Sep 2024)</label>
                         <input type="text" name="experience_dates[]" class="form-control">
                     </div>
                     <div class="form-group">
-                        <label>Responsibilities</label>
+                        <label>Description</label>
                         <textarea name="experience_responsibilities[]" class="form-control"></textarea>
                     </div>
                     <button type="button" class="btn btn-danger remove-entry">Remove</button>
@@ -1242,48 +1364,14 @@ $nonce = base64_encode(random_bytes(16));
                         h2.textContent = 'Professional Summary';
                         const p = document.createElement('p');
                         p.id = 'preview-summary';
-                        document.getElementById('resume-preview').insertBefore(h2, document.getElementById('preview-experience').previousElementSibling);
-                        document.getElementById('resume-preview').insertBefore(p, document.getElementById('preview-experience').previousElementSibling);
+                        document.getElementById('resume-preview').insertBefore(h2, document.getElementById('preview-skills')?.parentElement || document.getElementById('preview-experience').previousElementSibling);
+                        document.getElementById('resume-preview').insertBefore(p, document.getElementById('preview-skills')?.parentElement || document.getElementById('preview-experience').previousElementSibling);
                     }
                     document.getElementById('preview-summary').innerHTML = summary.replace(/\n/g, '<br>');
                 } else if (summarySection) {
                     summarySection.previousElementSibling.remove();
                     summarySection.remove();
                 }
-
-                // Work Experience
-                const experienceEntries = [];
-                const jobTitles = formData.getAll('experience_job_title');
-                const companies = formData.getAll('experience_company');
-                const dates = formData.getAll('experience_dates');
-                const responsibilities = formData.getAll('experience_responsibilities');
-
-                jobTitles.forEach((title, index) => {
-                    if (title) {
-                        experienceEntries.push(`
-                            <p><strong>${title}</strong></p>
-                            <p>${companies[index] || ''}${dates[index] ? ' | ' + dates[index] : ''}</p>
-                            <p>${responsibilities[index] ? responsibilities[index].replace(/\n/g, '<br>') : ''}</p>
-                        `);
-                    }
-                });
-                document.getElementById('preview-experience').innerHTML = experienceEntries.length ? experienceEntries.join('') : '<p>Add your work experience here.</p>';
-
-                // Education
-                const educationEntries = [];
-                const degrees = formData.getAll('education_degree');
-                const institutions = formData.getAll('education_institution');
-                const graduationYears = formData.getAll('education_graduation_year');
-
-                degrees.forEach((degree, index) => {
-                    if (degree) {
-                        educationEntries.push(`
-                            <p><strong>${degree}</strong></p>
-                            <p>${institutions[index] || ''}${graduationYears[index] ? ' | ' + graduationYears[index] : ''}</p>
-                        `);
-                    }
-                });
-                document.getElementById('preview-education').innerHTML = educationEntries.length ? educationEntries.join('') : '<p>Add your education here.</p>';
 
                 // Skills
                 const skills = formData.getAll('skills').filter(skill => skill);
@@ -1294,14 +1382,56 @@ $nonce = base64_encode(random_bytes(16));
                         h2.textContent = 'Skills';
                         const div = document.createElement('div');
                         div.id = 'preview-skills';
-                        document.getElementById('resume-preview').insertBefore(h2, document.getElementById('preview-custom-sections'));
-                        document.getElementById('resume-preview').insertBefore(div, document.getElementById('preview-custom-sections'));
+                        document.getElementById('resume-preview').insertBefore(h2, document.getElementById('preview-experience').previousElementSibling);
+                        document.getElementById('resume-preview').insertBefore(div, document.getElementById('preview-experience').previousElementSibling);
                     }
-                    document.getElementById('preview-skills').innerHTML = `<p>${skills.join(', ')}</p>`;
+                    document.getElementById('preview-skills').innerHTML = `
+                        <p class="entry-content">${skills.join(', ')}</p>
+                    `;
                 } else if (skillsSection) {
                     skillsSection.previousElementSibling.remove();
                     skillsSection.remove();
                 }
+
+                // Projects (Work Experience)
+                const experienceEntries = [];
+                const jobTitles = formData.getAll('experience_job_title');
+                const companies = formData.getAll('experience_company');
+                const dates = formData.getAll('experience_dates');
+                const responsibilities = formData.getAll('experience_responsibilities');
+
+                jobTitles.forEach((title, index) => {
+                    if (title) {
+                        const respList = responsibilities[index] ? responsibilities[index].split('\n').filter(r => r.trim()).map(r => `<li>${r.trim()}</li>`).join('') : '';
+                        experienceEntries.push(`
+                            <div class="entry">
+                                <span class="entry-date">${dates[index] || ''}</span>
+                                <p class="entry-title">${title}</p>
+                                <p class="entry-subtitle">${companies[index] || ''}</p>
+                                <p class="entry-content"><ul>${respList}</ul></p>
+                            </div>
+                        `);
+                    }
+                });
+                document.getElementById('preview-experience').innerHTML = experienceEntries.length ? experienceEntries.join('') : '<p>Add your projects here.</p>';
+
+                // Education
+                const educationEntries = [];
+                const degrees = formData.getAll('education_degree');
+                const institutions = formData.getAll('education_institution');
+                const graduationYears = formData.getAll('education_graduation_year');
+
+                degrees.forEach((degree, index) => {
+                    if (degree) {
+                        educationEntries.push(`
+                            <div class="entry education-entry">
+                                <p class="education-details">${degree}, ${institutions[index]}</p>
+                                <span class="education-year">${graduationYears[index] || ''}</span>
+                            </div>
+                        `);
+                    }
+                });
+                document.getElementById('preview-education').innerHTML = educationEntries.length ? educationEntries.join('') : '<p>Add your education here.</p>';
 
                 // Custom Sections
                 const customSectionEntries = [];
@@ -1310,9 +1440,12 @@ $nonce = base64_encode(random_bytes(16));
 
                 customTitles.forEach((title, index) => {
                     if (title) {
+                        const contentList = customContents[index] ? customContents[index].split('\n').filter(c => c.trim()).map(c => `<li>${c.trim()}</li>`).join('') : '';
                         customSectionEntries.push(`
                             <h2>${title}</h2>
-                            <p>${customContents[index] ? customContents[index].replace(/\n/g, '<br>') : ''}</p>
+                            <div class="entry">
+                                <p class="entry-content"><ul>${contentList}</ul></p>
+                            </div>
                         `);
                     }
                 });

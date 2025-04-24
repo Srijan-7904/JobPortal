@@ -729,7 +729,7 @@ if (isset($_SESSION['user_id'])) {
     <!-- Hero Section -->
     <section class="hero-section">
         <div class="hero-content">
-            <h1>Discover Your Dream Career</h1>
+            <h1>One Portal, Zero Hassle, Full Potential</h1>
             <p>Join RookieRise to connect with top employers and find opportunities that match your skills.</p>
             <a href="<?php echo isset($_SESSION['user_id']) ? 'views/dashboard.php' : 'auth/register.php'; ?>" 
                class="btn btn-hero">Get Started</a>

@@ -31,7 +31,7 @@ if ($user_email_raw && filter_var($user_email_raw, FILTER_VALIDATE_EMAIL)) {
 // Fetch applications with error handling
 try {
     $stmt = $conn->prepare("
-        SELECT a.id, a.resume, u.id AS applicant_id, u.name AS applicant_name, u.email AS applicant_email, j.id AS job_id, j.title AS job_title
+        SELECT a.id, a.resume, a.notes, u.id AS applicant_id, u.name AS applicant_name, u.email AS applicant_email, j.id AS job_id, j.title AS job_title
         FROM applications a
         JOIN users u ON a.user_id = u.id
         JOIN jobs j ON a.job_id = j.id
@@ -345,12 +345,64 @@ try {
                 right: 0;
             }
         }
+        /* Added Notes Styles */
+        .btn-notes {
+            background: #8e44ad;
+            border: none;
+            border-radius: 25px;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+            color: white;
+        }
+        .btn-notes:hover {
+            background: #732d91;
+            transform: scale(1.05);
+        }
+        .modal-content {
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            background: #1a2a44;
+            color: white;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
+        }
+        .notes-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
     </style>
 </head>
 <body>
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
         <div id="interviewToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-body"></div>
+        </div>
+    </div>
+
+    <!-- Added Notes Modal -->
+    <div class="modal fade" id="notesModal" tabindex="-1" aria-labelledby="notesModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="notesModalLabel">Application Notes</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="notesForm">
+                        <input type="hidden" id="applicationId">
+                        <div class="mb-3">
+                            <label for="notesInput" class="form-label">Notes</label>
+                            <textarea class="form-control notes-textarea" id="notesInput" placeholder="Enter your notes here..."></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveNotes">Save Notes</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -469,6 +521,13 @@ try {
                                            aria-label="View resume for <?php echo htmlspecialchars($application['applicant_name']); ?>">
                                             View Resume
                                         </a>
+                                        <!-- Added Notes Button -->
+                                        <button class="btn btn-notes ms-2 open-notes-modal" 
+                                                data-application-id="<?php echo $application['id']; ?>"
+                                                data-notes="<?php echo htmlspecialchars($application['notes'] ?? ''); ?>"
+                                                aria-label="Add notes for <?php echo htmlspecialchars($application['applicant_name']); ?>">
+                                            Notes
+                                        </button>
                                         <button class="btn btn-chat ms-2 open-chat-sidebar" 
                                                 data-applicant-id="<?php echo $application['applicant_id']; ?>" 
                                                 data-name="<?php echo htmlspecialchars($application['applicant_name']); ?>" 
@@ -824,6 +883,60 @@ try {
                         alert('An error occurred: ' + error.message);
                     }
                 });
+            });
+
+            // Added Notes Functionality
+            document.querySelectorAll('.open-notes-modal').forEach(button => {
+                button.addEventListener('click', () => {
+                    const applicationId = button.getAttribute('data-application-id');
+                    const existingNotes = button.getAttribute('data-notes');
+                    
+                    document.getElementById('applicationId').value = applicationId;
+                    document.getElementById('notesInput').value = existingNotes || '';
+                    
+                    const modal = new bootstrap.Modal(document.getElementById('notesModal'));
+                    modal.show();
+                });
+            });
+
+            document.getElementById('saveNotes').addEventListener('click', async () => {
+                const applicationId = document.getElementById('applicationId').value;
+                const notes = document.getElementById('notesInput').value;
+
+                try {
+                    const response = await fetch('../api/save_notes.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            application_id: applicationId,
+                            notes: notes
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to save notes');
+                    }
+
+                    const data = await response.json();
+                    if (data.success) {
+                        // Update the button's data-notes attribute
+                        const button = document.querySelector(`.open-notes-modal[data-application-id="${applicationId}"]`);
+                        button.setAttribute('data-notes', notes);
+                        
+                        // Show success toast
+                        const toast = new bootstrap.Toast(document.getElementById('interviewToast'));
+                        document.querySelector('#interviewToast .toast-body').textContent = 'Notes saved successfully!';
+                        toast.show();
+
+                        // Close modal
+                        bootstrap.Modal.getInstance(document.getElementById('notesModal')).hide();
+                    } else {
+                        throw new Error(data.error || 'Failed to save notes');
+                    }
+                } catch (error) {
+                    console.error('Error saving notes:', error);
+                    alert('Failed to save notes: ' + error.message);
+                }
             });
         });
     </script>
